@@ -1,0 +1,10 @@
+{
+    "referral_code": "8Y6X3f11HNQI",
+    "num_accounts": 5,
+    "delay_between_accounts": 30,
+    "emailoctopus": {
+        "api_key": "eo_ede4d7239e4a366e41475f4a31e5b47e10efedf794a3d7ff91d56c950deac168",
+        "list_id": "d6e2d2ba-1fac-11f0-ba3b-7f735a7e0421"
+    },
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
