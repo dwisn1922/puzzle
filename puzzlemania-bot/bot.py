@@ -8,7 +8,6 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 
 class PuzzleManiaBot:
     def __init__(self):
@@ -21,15 +20,13 @@ class PuzzleManiaBot:
         
     def setup_driver(self):
         chrome_options = Options()
-        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--headless=new")  # Mode headless baru
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument(f"user-agent={self.config['user_agent']}")
         
-        self.driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
-            options=chrome_options
-        )
+        # Gunakan ChromeDriver yang sudah diinstall di system PATH
+        self.driver = webdriver.Chrome(options=chrome_options)
     
     def generate_email(self):
         domains = ["gmail.com", "yahoo.com", "outlook.com"]
