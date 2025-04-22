@@ -20,22 +20,16 @@ class PuzzleManiaBot:
             self.config = json.load(f)
         
     def setup_driver(self):
-        """Setup Chrome WebDriver dengan opsi headless"""
-        chrome_options = Options()
-        chrome_options.add_argument("--headless=new")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument(f"user-agent={self.config['user_agent']}")
-        
-        try:
-            # Coba gunakan ChromeDriver dari PATH
-            self.driver = webdriver.Chrome(options=chrome_options)
-        except Exception as e:
-            print(f"Error saat setup ChromeDriver: {str(e)}")
-            print("Mencoba menginstall ChromeDriver...")
-            self.install_chromedriver()
-            self.driver = webdriver.Chrome(service=Service('/usr/local/bin/chromedriver'),
-                                         options=chrome_options)
+    from selenium.webdriver.firefox.options import Options
+    from webdriver_manager.firefox import GeckoDriverManager
+    
+    firefox_options = Options()
+    firefox_options.add_argument("--headless")
+    
+    self.driver = webdriver.Firefox(
+        service=Service(GeckoDriverManager().install()),
+        options=firefox_options
+    )
     
     def install_chromedriver(self):
         """Install ChromeDriver secara manual jika belum ada"""
