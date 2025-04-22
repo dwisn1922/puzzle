@@ -18,6 +18,7 @@ class PuzzleManiaBot:
     def load_config(self):
         with open('config.json') as f:
             self.config = json.load(f)
+        
     def setup_driver(self):
         """Setup Chrome WebDriver with headless options"""
         chrome_options = Options()
