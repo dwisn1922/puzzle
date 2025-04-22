@@ -19,14 +19,16 @@ class PuzzleManiaBot:
             self.config = json.load(f)
         
     def setup_driver(self):
-        chrome_options = Options()
-        chrome_options.add_argument("--headless=new")  # Mode headless baru
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument(f"user-agent={self.config['user_agent']}")
-        
-        # Gunakan ChromeDriver yang sudah diinstall di system PATH
-        self.driver = webdriver.Chrome(options=chrome_options)
+    from selenium.webdriver.firefox.options import Options
+    from webdriver_manager.firefox import GeckoDriverManager
+    
+    firefox_options = Options()
+    firefox_options.add_argument("--headless")
+    
+    self.driver = webdriver.Firefox(
+        service=Service(GeckoDriverManager().install()),
+        options=firefox_options
+    )
     
     def generate_email(self):
         domains = ["gmail.com", "yahoo.com", "outlook.com"]
