@@ -20,19 +20,27 @@ class PuzzleManiaBot:
             self.config = json.load(f)
         
     def setup_driver(self):
-    from selenium.webdriver.firefox.options import Options
-    from webdriver_manager.firefox import GeckoDriverManager
-    
-    firefox_options = Options()
-    firefox_options.add_argument("--headless")
-    
-    self.driver = webdriver.Firefox(
-        service=Service(GeckoDriverManager().install()),
-        options=firefox_options
-    )
+        """Setup Chrome WebDriver with headless options"""
+        chrome_options = Options()
+        chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument(f"user-agent={self.config['user_agent']}")
+        
+        try:
+            # Try using ChromeDriver from PATH first
+            self.driver = webdriver.Chrome(options=chrome_options)
+        except Exception as e:
+            print(f"Error setting up ChromeDriver: {str(e)}")
+            print("Attempting to install ChromeDriver...")
+            self.install_chromedriver()
+            self.driver = webdriver.Chrome(
+                service=Service('/usr/local/bin/chromedriver'),
+                options=chrome_options
+            )
     
     def install_chromedriver(self):
-        """Install ChromeDriver secara manual jika belum ada"""
+        """Manually install ChromeDriver if not present"""
         if not os.path.exists("/usr/local/bin/chromedriver"):
             os.system("sudo apt-get update")
             os.system("sudo apt-get install -y wget unzip")
@@ -41,7 +49,7 @@ class PuzzleManiaBot:
             os.system("unzip /tmp/chromedriver.zip -d /tmp")
             os.system("sudo mv /tmp/chromedriver /usr/local/bin/")
             os.system("sudo chmod +x /usr/local/bin/chromedriver")
-            print("ChromeDriver berhasil diinstall")
+            print("ChromeDriver successfully installed")
     
     def generate_email(self):
         """Generate random email address"""
@@ -50,7 +58,7 @@ class PuzzleManiaBot:
         return f"{username}@{random.choice(domains)}"
     
     def register_emailoctopus(self, email):
-        """Register email ke EmailOctopus"""
+        """Register email with EmailOctopus"""
         url = f"https://emailoctopus.com/api/1.6/lists/{self.config['emailoctopus']['list_id']}/contacts"
         
         data = {
@@ -65,15 +73,15 @@ class PuzzleManiaBot:
             response.raise_for_status()
             return True
         except Exception as e:
-            print(f"Error EmailOctopus: {str(e)}")
+            print(f"EmailOctopus Error: {str(e)}")
             return False
     
     def create_account(self, email):
-        """Buat akun PuzzleMania"""
+        """Create PuzzleMania account"""
         try:
             self.driver.get("https://puzzlemania.0g.ai/signup")
             
-            # Isi form pendaftaran
+            # Fill registration form
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.NAME, "email"))
             ).send_keys(email)
@@ -91,38 +99,38 @@ class PuzzleManiaBot:
             return "dashboard" in self.driver.current_url.lower()
             
         except Exception as e:
-            print(f"Error pendaftaran: {str(e)}")
+            print(f"Registration error: {str(e)}")
             return False
     
     def run(self):
-        """Jalankan proses utama"""
+        """Main execution flow"""
         success_count = 0
         
         for i in range(self.config['num_accounts']):
             print(f"\nProgress: {i+1}/{self.config['num_accounts']}")
             
             email = self.generate_email()
-            print(f"Menggunakan email: {email}")
+            print(f"Using email: {email}")
             
             if self.create_account(email):
                 if self.register_emailoctopus(email):
                     success_count += 1
-                    print("Akun berhasil dibuat dan didaftarkan!")
+                    print("Account successfully created and registered!")
                 else:
-                    print("Akun dibuat tapi gagal didaftarkan ke EmailOctopus")
+                    print("Account created but failed to register with EmailOctopus")
             else:
-                print("Gagal membuat akun")
+                print("Failed to create account")
             
-            # Bersihkan session
+            # Clear session
             self.driver.delete_all_cookies()
             
-            # Delay antar akun
+            # Delay between accounts
             if i < self.config['num_accounts'] - 1:
                 delay = self.config['delay_between_accounts']
-                print(f"Menunggu {delay} detik...")
+                print(f"Waiting {delay} seconds...")
                 time.sleep(delay)
         
-        print(f"\nSelesai! Total akun berhasil: {success_count}/{self.config['num_accounts']}")
+        print(f"\nComplete! Total successful accounts: {success_count}/{self.config['num_accounts']}")
         self.driver.quit()
 
 if __name__ == "__main__":
