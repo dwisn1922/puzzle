@@ -1,3 +1,4 @@
+import os
 import json
 import random
 import time
@@ -19,23 +20,43 @@ class PuzzleManiaBot:
             self.config = json.load(f)
         
     def setup_driver(self):
-    from selenium.webdriver.firefox.options import Options
-    from webdriver_manager.firefox import GeckoDriverManager
+        """Setup Chrome WebDriver dengan opsi headless"""
+        chrome_options = Options()
+        chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument(f"user-agent={self.config['user_agent']}")
+        
+        try:
+            # Coba gunakan ChromeDriver dari PATH
+            self.driver = webdriver.Chrome(options=chrome_options)
+        except Exception as e:
+            print(f"Error saat setup ChromeDriver: {str(e)}")
+            print("Mencoba menginstall ChromeDriver...")
+            self.install_chromedriver()
+            self.driver = webdriver.Chrome(service=Service('/usr/local/bin/chromedriver'),
+                                         options=chrome_options)
     
-    firefox_options = Options()
-    firefox_options.add_argument("--headless")
-    
-    self.driver = webdriver.Firefox(
-        service=Service(GeckoDriverManager().install()),
-        options=firefox_options
-    )
+    def install_chromedriver(self):
+        """Install ChromeDriver secara manual jika belum ada"""
+        if not os.path.exists("/usr/local/bin/chromedriver"):
+            os.system("sudo apt-get update")
+            os.system("sudo apt-get install -y wget unzip")
+            os.system("wget https://chromedriver.storage.googleapis.com/LATEST_RELEASE -O /tmp/latest_release")
+            os.system("wget https://chromedriver.storage.googleapis.com/`cat /tmp/latest_release`/chromedriver_linux64.zip -O /tmp/chromedriver.zip")
+            os.system("unzip /tmp/chromedriver.zip -d /tmp")
+            os.system("sudo mv /tmp/chromedriver /usr/local/bin/")
+            os.system("sudo chmod +x /usr/local/bin/chromedriver")
+            print("ChromeDriver berhasil diinstall")
     
     def generate_email(self):
+        """Generate random email address"""
         domains = ["gmail.com", "yahoo.com", "outlook.com"]
         username = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz1234567890', k=10))
         return f"{username}@{random.choice(domains)}"
     
     def register_emailoctopus(self, email):
+        """Register email ke EmailOctopus"""
         url = f"https://emailoctopus.com/api/1.6/lists/{self.config['emailoctopus']['list_id']}/contacts"
         
         data = {
@@ -54,6 +75,7 @@ class PuzzleManiaBot:
             return False
     
     def create_account(self, email):
+        """Buat akun PuzzleMania"""
         try:
             self.driver.get("https://puzzlemania.0g.ai/signup")
             
@@ -79,6 +101,7 @@ class PuzzleManiaBot:
             return False
     
     def run(self):
+        """Jalankan proses utama"""
         success_count = 0
         
         for i in range(self.config['num_accounts']):
